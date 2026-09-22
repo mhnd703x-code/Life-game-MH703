@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060a13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>لعبة الحياة</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#060a13;
+  --panel:#0b1322;
+  --panel2:#101b30;
+  --cyan:#22e6ff;
+  --violet:#8b5cf6;
+  --gold:#f5c518;
+  --text:#dbe7f5;
+  --muted:#7d8ea8;
+  --line:rgba(34,230,255,.18);
+  --red:#ff4d6d;
+  --amber:#ffb020;
+  --green:#3ddc97;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--void);color:var(--text);font-family:'Tajawal',system-ui,'Segoe UI',Tahoma,sans-serif;font-size:16px;line-height:1.6}
+body{min-height:100vh;background:
+  radial-gradient(800px 400px at 90% -10%,rgba(139,92,246,.18),transparent 60%),
+  radial-gradient(700px 400px at 0% 0%,rgba(34,230,255,.12),transparent 60%),var(--void)}
+#app{max-width:520px;margin:0 auto;padding:16px 14px calc(96px + env(safe-area-inset-bottom))}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+
+h1,h2,h3{margin:0;font-weight:800}
+.title{font-size:22px;color:var(--cyan);text-shadow:0 0 14px rgba(34,230,255,.55)}
+.sub{color:var(--muted);font-size:13px;margin:2px 0 0}
+.gold{color:var(--gold);font-weight:700;font-size:14px}
+
+.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:12px;box-shadow:0 0 24px rgba(34,230,255,.05)}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:rgba(34,230,255,.08);border:1px solid var(--line);border-radius:999px;padding:3px 12px;font-size:13px}
+.chip b{color:var(--cyan)}
+
+.btn{border:0;border-radius:10px;padding:12px 16px;font-weight:700;background:linear-gradient(90deg,#12c9e6,#7c4dff);color:#fff;box-shadow:0 0 18px rgba(124,77,255,.45)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);box-shadow:none}
+.btn.block{width:100%}
+.btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.btn.small{padding:6px 12px;font-size:13px}
+
+input[type=text],input[type=number],select{width:100%;background:#08101d;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input[type=checkbox]{width:auto;accent-color:var(--cyan)}
+
+/* player */
+.hero{display:grid;grid-template-columns:1fr 1.2fr 1fr;align-items:center;gap:6px;margin-top:12px}
+.figure{position:relative;display:flex;flex-direction:column;align-items:center}
+.figure svg.sil{width:100%;max-width:140px;filter:drop-shadow(0 0 14px rgba(34,230,255,.6))}
+.shield{width:54px;margin-bottom:-6px;filter:drop-shadow(0 0 10px rgba(34,230,255,.7));z-index:1}
+.rankname{font-size:13px;color:var(--gold);font-weight:700}
+.ringbox{text-align:center}
+.ringbox svg{width:100%;max-width:120px}
+.ringnote{font-size:12px;color:var(--muted)}
+.streak{text-align:center}
+.streak .n{font-size:26px;font-weight:800;color:var(--gold);text-shadow:0 0 12px rgba(245,197,24,.4);line-height:1.1}
+
+.stat{padding:8px 0;border-top:1px solid rgba(255,255,255,.05)}
+.stat:first-child{border-top:0}
+.bar{height:6px;border-radius:6px;background:#0a1424;overflow:hidden;margin-top:6px}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet));border-radius:6px;transition:width .5s}
+.bar.gold>i{background:linear-gradient(90deg,var(--gold),#ff8a3d)}
+.small{font-size:12px;color:var(--muted)}
+
+/* quests */
+.q{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid rgba(255,255,255,.05)}
+.q:first-child{border-top:0}
+.check{width:32px;height:32px;flex:none;border-radius:9px;border:2px solid var(--cyan);background:transparent;display:grid;place-items:center;color:transparent;font-weight:800}
+.q.done .check{background:var(--cyan);color:#04202a;box-shadow:0 0 14px rgba(34,230,255,.6)}
+.q.done .qt{text-decoration:line-through;color:var(--muted)}
+.check.gate{border-color:var(--violet);color:var(--violet);font-size:15px}
+.q.timer.done .check.gate{background:var(--violet);color:#fff;box-shadow:0 0 14px rgba(139,92,246,.6)}
+.qt{flex:1;min-width:0;overflow-wrap:anywhere}
+button.qt{background:none;border:0;padding:0;font:inherit;color:inherit;text-align:right;cursor:pointer}
+.edit{background:none;border:0;color:var(--muted);font-size:16px;padding:4px 6px}
+.del{background:none;border:0;color:var(--muted);font-size:20px;padding:4px 6px}
+.xp{color:var(--gold);font-weight:700;font-size:13px;white-space:nowrap}
+.chkrow{display:flex;align-items:center;gap:6px;color:var(--text);font-size:13px;margin:10px 0 0}
+
+/* demons */
+.demon{display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:center;width:100%;text-align:right;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}
+.demon svg{width:64px;height:64px}
+.badge{display:inline-block;border-radius:999px;padding:1px 10px;font-size:12px;font-weight:700;border:1px solid}
+.b-high{color:var(--red);border-color:var(--red)}
+.b-mid{color:var(--amber);border-color:var(--amber)}
+.b-low{color:var(--green);border-color:var(--green)}
+.b-ally{color:var(--cyan);border-color:var(--cyan)}
+ul.tight{margin:6px 0 0;padding:0 18px 0 0;font-size:14px}
+ul.tight li{margin:3px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:400px){.two{grid-template-columns:1fr}}
+.opt{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:right;background:#08101d;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:8px}
+.opt .l{flex:none;width:26px;height:26px;border-radius:7px;background:rgba(34,230,255,.12);color:var(--cyan);font-weight:800;display:grid;place-items:center;font-size:13px}
+.opt:active{border-color:var(--cyan)}
+.ch{padding:10px 0;border-top:1px solid rgba(255,255,255,.05)}
+.ch:first-child{border-top:0}
+.ch.locked{opacity:.4}
+.dots{display:flex;gap:5px;margin-top:6px}
+.dots i{width:14px;height:6px;border-radius:4px;background:#0a1424;border:1px solid var(--line)}
+.dots i.on{background:var(--cyan);border-color:var(--cyan)}
+
+/* nav */
+nav{position:fixed;inset:auto 0 0 0;background:rgba(6,10,19,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav button{background:none;border:0;padding:10px 2px;color:var(--muted);font-weight:700;font-size:13px;position:relative}
+nav button[aria-current=true]{color:var(--cyan);text-shadow:0 0 10px rgba(34,230,255,.6)}
+nav button[aria-current=true]::before{content:"";position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+
+/* toast */
+#toast{position:fixed;top:22%;left:50%;transform:translate(-50%,-20px);opacity:0;pointer-events:none;z-index:20;text-align:center;transition:opacity .25s,transform .25s;width:min(90vw,360px)}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast b{display:block;font-size:34px;font-weight:800;color:#fff;text-shadow:0 0 12px var(--cyan),0 0 30px var(--cyan)}
+#toast span{display:inline-block;margin-top:6px;background:rgba(6,10,19,.9);border:1px solid var(--cyan);border-radius:10px;padding:4px 14px;color:var(--cyan);font-weight:700}
+
+/* gate (بوابة الشيطان) — خلفية معتمة بالكامل حتى يظهر الزر بوضوح */
+#gateOverlay{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;overflow-y:auto;background:#04070d;padding:28px 16px}
+#gateOverlay.tier30{background:radial-gradient(circle at 50% 22%,rgba(255,77,109,.22),#04070d 62%)}
+#gateOverlay.tier20{background:radial-gradient(circle at 50% 22%,rgba(34,230,255,.18),#04070d 62%)}
+.portal{width:min(92vw,380px);margin:0 auto;text-align:center}
+.portal-rings{position:relative;height:170px;margin:0 auto}
+.portalring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;border:2px solid currentColor;box-shadow:0 0 26px currentColor}
+.portalring.r1{width:172px;height:172px;animation:spin 9s linear infinite}
+.portalring.r2{width:132px;height:132px;animation:spin 6s linear infinite reverse}
+.portalring.r3{width:94px;height:94px;border-style:dashed;animation:spin 12s linear infinite}
+@keyframes spin{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+.pcontent{background:rgba(9,14,25,.92);border:1px solid var(--line);border-radius:18px;padding:22px 18px;margin-top:10px;box-shadow:0 0 40px rgba(0,0,0,.5)}
+.gatebadge{display:inline-block;border-radius:999px;padding:2px 14px;font-size:12px;font-weight:700;margin-bottom:10px}
+.ptitle{font-size:24px;font-weight:800;text-shadow:0 0 16px currentColor}
+.pquest{font-size:16px;color:var(--text);margin-top:6px;font-weight:700}
+.pq{color:var(--muted);margin:12px 0}
+.pq.gold{color:var(--gold);font-weight:700}
+.ptimer{font-size:50px;font-weight:800;color:#fff;margin:14px 0;font-variant-numeric:tabular-nums}
+@media(prefers-reduced-motion:reduce){.portalring{animation:none}}
+
+.empty{color:var(--muted);text-align:center;padding:18px 6px;font-size:14px}
+.center{text-align:center}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<nav id="nav" hidden><div class="in">
+  <button data-act="tab" data-tab="player">اللاعب</button>
+  <button data-act="tab" data-tab="quests">المهام</button>
+  <button data-act="tab" data-tab="demons">الشياطين</button>
+  <button data-act="tab" data-tab="log">السجل</button>
+</div></nav>
+<div id="gateOverlay" role="dialog" aria-modal="true"></div>
+
+<script>
+/* ---------- تخزين (يعمل حتى لو المتصفح يمنع localStorage) ---------- */
+const mem={};
+const store={
+  get(k){try{return localStorage.getItem(k)}catch(e){return mem[k]??null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch(e){mem[k]=v}}
+};
+const KEY='lifegame_v3';
+
+/* ---------- بيانات اللعبة ---------- */
+/* السمات: الانضباط، الإبداع، الدين، القوة، التعافي — فقط لا غير */
+const STATS=[
+  {id:'discipline',n:'الانضباط'},{id:'create',n:'الإبداع'},{id:'faith',n:'الدين'},
+  {id:'power',n:'القوة'},{id:'recovery',n:'التعافي'}
+];
+const statName=id=>(STATS.find(s=>s.id===id)||{}).n||id;
+const MAXLV=1000;
+const RANKS=[
+  {l:'E',from:1,n:'مبتدئ'},{l:'D',from:5,n:'متدرب'},{l:'C',from:12,n:'محارب'},
+  {l:'B',from:25,n:'نخبة'},{l:'A',from:50,n:'بطل'},{l:'S',from:100,n:'أسطورة'}
+];
+const TIER_COLORS=[
+  ['#7ff3ff','#1b8fb3'],['#8df7ff','#2fa7c9'],['#c7a6ff','#6a3fd6'],
+  ['#ffe08a','#c98b1f'],['#ffe9a8','#8b5cf6'],['#fff5c2','#f5c518']
+];
+
+const DEMONS={
+  scatter:{n:'شيطان التشتت',stat:'create',
+    d:'يسرق تركيزك عبر الهاتف والضوضاء وتشتت الانتباه.',
+    grow:['التصفح اللانهائي في وسائل التواصل','التنقل بين المهام قبل إنهاء واحدة','ترك الهاتف قريبًا أثناء العمل المهم','السماح للآخرين بمقاطعة أولوياتك'],
+    weak:['إكمال مهمة واحدة قبل بدء أخرى','جلسات التركيز العميق','إبعاد هاتفك أثناء العمل','إنهاء مهمة اليوم المهمة قبل الترفيه'],
+    ch:[['اكسر الضوضاء','أكمل جلسة تركيز 25 دقيقة بدون جوال.',5],['ساعة بلا إشعارات','أوقف إشعارات هاتفك ساعة كاملة أثناء العمل.',3],['يوم بلا مقاطع قصيرة','امتنع عن المقاطع القصيرة طوال اليوم.',3],['مهمة واحدة فقط','اعمل 45 دقيقة على مهمة واحدة بدون تنقل.',5],['سيد الانتباه','أنهِ أهم مهمة قبل أي ترفيه.',7]]},
+  proc:{n:'شيطان التسويف',stat:'discipline',
+    d:'يقنعك أن الوقت ما زال كافيًا حتى تضيق عليك الأيام.',
+    grow:['انتظار المزاج المناسب','تضخيم حجم المهام في رأسك','ترك أصعب مهمة لآخر اليوم','الكمالية قبل البدء'],
+    weak:['قاعدة الدقيقتين','تقسيم المهمة لخطوات صغيرة','البدء بأصعب مهمة صباحًا','تحديد موعد نهائي واضح'],
+    ch:[['قاعدة الدقيقتين','ابدأ مهمة مؤجلة لمدة دقيقتين فقط.',5],['الخطوة الأولى','قسّم مهمة كبيرة واكتب أول خطوة ثم نفّذها.',3],['الصعب أولًا','ابدأ يومك بأصعب مهمة.',3],['موعد نهائي','حدد موعدًا واضحًا لمهمة وأنجزها فيه.',5],['بلا تأجيل','أنجز مهمتك الرئيسية قبل الظهر.',7]]},
+  comfort:{n:'شيطان منطقة الراحة',stat:'power',
+    d:'يقنعك أن الراحة أهم من النمو ويبعدك عن كل ما هو جديد.',
+    grow:['تجنب المهام الصعبة','البقاء في الروتين نفسه','اختيار الأسهل دائمًا','رفض التجارب الجديدة'],
+    weak:['تجربة شيء جديد كل أسبوع','الاستمرار بعد ظهور التعب','تمرين أصعب قليلًا من قدرتك','الاحتفال بالتقدم الصغير'],
+    ch:[['خطوة خارج المألوف','افعل شيئًا جديدًا صغيرًا لم تفعله من قبل.',3],['أكمل بعد التعب','أكمل جزءًا إضافيًا بعد أن تشعر بالرغبة في التوقف.',3],['أصعب قليلًا','مارس تمرينًا أو مهمة أصعب قليلًا من المعتاد.',5],['الاستيقاظ في موعده','استيقظ في موعدك المحدد بدون تأجيل المنبه.',5],['توسيع المنطقة','افعل شيئًا يخيفك قليلًا.',7]]},
+  discipline:{n:'شيطان ضعف الانضباط',stat:'discipline',
+    d:'يجعلك تبدأ بحماس ثم تتراجع قبل أن تتحول الخطة إلى عادة.',
+    grow:['وضع خطط أكبر من طاقتك','تغيير الجدول كل يوم','انتظار الحماس بدل الالتزام','ترك الخطة كلها بعد يوم فائت'],
+    weak:['عادات صغيرة ثابتة','وقت محدد كل يوم','العودة في اليوم التالي بعد الخطأ','متابعة السلسلة اليومية'],
+    ch:[['عادة صغيرة','نفّذ عادة لا تتجاوز 5 دقائق.',5],['نفس الوقت','نفّذ العادة في وقت ثابت.',5],['لا تكسر السلسلة','سجّل إنجازًا حتى لو كان صغيرًا.',3],['خطة واقعية','التزم بخطتك اليومية كاملة.',5],['ابدأ بلا مزاج','نفّذ مهمتك حتى لو لم تكن متحمسًا.',7]]},
+  doubt:{n:'شيطان عدم الثقة',stat:'faith',
+    d:'يهمس لك أنك لست جيدًا بما يكفي فيعطّل خطواتك.',
+    grow:['مقارنة نفسك بالآخرين','تذكّر الفشل السابق فقط','ترك المحاولة قبل الحكم على النتيجة','القسوة على نفسك عند الخطأ'],
+    weak:['تسجيل إنجازاتك الصغيرة','وعد صغير لنفسك والوفاء به','طلب رأي شخص تثق به','إعادة المحاولة بعد الفشل'],
+    ch:[['سجّل إنجازًا','اكتب إنجازًا واحدًا فعلته اليوم.',5],['وعد صغير','اقطع وعدًا صغيرًا لنفسك وأوفِ به.',3],['اطلب رأيًا','اطلب رأي شخص تثق به في عمل لك.',3],['حاول مجددًا','أعد محاولة شيء فشلت فيه من قبل.',5],['أظهر عملك','شارك عملك مع شخص بدل إخفائه.',7]]}
+};
+const DIDS=Object.keys(DEMONS);
+const CH_XP=[100,150,200,250,300];
+const NEUTRAL_TEXT='ولا وحدة من هذي تصف حالتي غالبًا';
+
+/* كل سؤال: خيار لكل شيطان + خيار محايد */
+const QUIZ=[
+  ['لما تقرر تبني عادة جديدة، وش أكثر شي يوقفك؟',{scatter:'أنشغل بالجوال أو بشي ثاني وأنسى العادة',proc:'أقول "بكرة أبدأ" وأأجل',comfort:'أحس إنها تطلع من راحتي فأتركها',discipline:'أبدأ بحماس وبعد كم يوم ما ألتزم',doubt:'أحس إني ما راح أقدر أستمر أصلًا'}],
+  ['عندك مهمة مهمة، وش يصير أول ما تبدأ؟',{scatter:'أفتح تطبيق أو فيديو "بس دقيقة" ويضيع الوقت',proc:'أقنع نفسي إن الوقت لسا فيه',comfort:'أدور مهمة أسهل أسويها بدالها',discipline:'أشتغل شوي وأوقف لما أمل',doubt:'أخاف ما أسويها كفاية وما أبدأ'}],
+  ['نهاية اليوم وما خلصت اللي خططت له، السبب غالبًا:',{scatter:'الإشعارات والمقاطع أخذت وقتي',proc:'أجلت كل شي لآخر لحظة',comfort:'فضلت أرتاح وأتجنب التعب',discipline:'ما التزمت بالوقت اللي حددته',doubt:'شككت في نفسي وقلت ما يستاهل'}],
+  ['لما تشوف شخص أفضل منك في شي تبيه:',{scatter:'أتنقل بين أهداف كثيرة وما أثبت على واحد',proc:'أقول أبدأ لما أكون جاهز',comfort:'أرجع لأشيائي المريحة اللي أعرفها',discipline:'أتحمس يومين وأتركها',doubt:'أقارن نفسي وأحس إني متأخر'}],
+  ['وش يصير لتركيزك وأنت تذاكر أو تشتغل؟',{scatter:'يقطعه أي صوت أو إشعار',proc:'أضيع نصف الوقت قبل ما أبدأ',comfort:'أوقف أول ما أحس بتعب أو صعوبة',discipline:'ما أقدر ألتزم بجدول ثابت',doubt:'أفكر إني بفشل فينقص تركيزي'}],
+  ['لما يكون عندك هدف كبير، كيف تتعامل معه؟',{scatter:'أتشتت بين تفاصيل كثيرة',proc:'أقعد أخطط وما أبدأ',comfort:'أتجنب اللي يحتاج مجهود كبير',discipline:'أحطه في جدول وما ألتزم فيه',doubt:'أحس إنه أكبر مني'}],
+  ['كيف يكون نومك؟',{scatter:'أسهر على الجوال بدون ما أحس',proc:'أقول "بس شوي" وأتأخر عن النوم',comfort:'أحب أنام وأصحى متأخر لأني مرتاح',discipline:'مواعيدي تتغير كل يوم',doubt:'أسهر أفكر في أخطائي'}],
+  ['بعد ما تفشل في شي، وش ردة فعلك؟',{scatter:'أهرب لأشياء تشغلني: مقاطع أو ألعاب',proc:'أأجل المحاولة التالية لوقت غير محدد',comfort:'أرجع لما هو سهل ومضمون',discipline:'أترك الخطة كلها',doubt:'أقتنع إني ما أنفع لهذا الشي'}],
+  ['لما يكون عندك وقت فاضي بدون مهمة محددة، وش تسوي؟',{scatter:'أتصفح لساعات بدون ما أحس',proc:'أقول أسوي المهم "بعدين"',comfort:'أرتاح وأتجنب أي شي جديد',discipline:'أسوي شي عشوائي بدون خطة',doubt:'أفكر فيما ينقصني'}],
+  ['أي جملة تقولها لنفسك أكثر؟',{scatter:'"بس أشوف الإشعار"',proc:'"بكرة أبدأ"',comfort:'"خلني مرتاح"',discipline:'"ما لي خلق أسوي الجدول"',doubt:'"ما أقدر، غيري أفضل مني"'}]
+];
+
+/* ---------- الحالة ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const fmt=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today=()=>fmt(new Date());
+const parseD=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(s,n)=>{const d=parseD(s);d.setDate(d.getDate()+n);return fmt(d)};
+const dayDiff=(a,b)=>Math.round((parseD(b)-parseD(a))/864e5);
+const AR_DAYS=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const AR_MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const dateLabel=s=>{const d=parseD(s);return AR_DAYS[d.getDay()]+'، '+d.getDate()+' '+AR_MONTHS[d.getMonth()]+' '+d.getFullYear()};
+
+function fresh(){
+  const exp={};STATS.forEach(s=>exp[s.id]=0);
+  return {player:null,exp,quests:[],streak:0,lastActive:null,lastCheck:null,quiz:null,demons:{},daily:{}};
+}
+let S=fresh();
+try{const raw=store.get(KEY);if(raw){S=Object.assign(fresh(),JSON.parse(raw));S.exp=Object.assign({},fresh().exp,S.exp);S.daily=S.daily||{};}}catch(e){}
+const save=()=>store.set(KEY,JSON.stringify(S));
+
+let tab='player';
+let dv={mode:'list',id:null,q:0,answers:[]};
+let armed=null;
+let gate={open:false,stage:'confirm',id:null,startTs:0,timerId:null,success:false,xpGain:0,bonus:false};
+
+/* ---------- المستويات ---------- */
+const cost=l=>20+2*(l-1);
+function lvl(exp){
+  let l=1,e=exp;
+  while(l<MAXLV&&e>=cost(l)){e-=cost(l);l++}
+  return {lvl:l,into:e,need:cost(l)};
+}
+const levels=()=>{const o={};STATS.forEach(s=>o[s.id]=lvl(S.exp[s.id]).lvl);return o};
+const avgLevel=()=>{const v=Object.values(levels());return v.reduce((a,b)=>a+b,0)/v.length};
+function rankInfo(){
+  const a=avgLevel();
+  let i=0;RANKS.forEach((r,k)=>{if(a>=r.from)i=k});
+  const cur=RANKS[i],next=RANKS[i+1];
+  const p=next?(a-cur.from)/(next.from-cur.from):1;
+  return {cur,next,p:Math.max(0,Math.min(1,p)),avg:a,idx:i};
+}
+const threshold=xp=>xp>=30?1800:xp>=20?900:0;
+/* درجة فخامة البوابة حسب صعوبة المهمة: 30 XP بوابة عليا أصعب، 20 XP بوابة متوسطة */
+function gateTier(xp){
+  if(xp>=30)return{key:'tier30',rings:3,color:'#ff4d6d',color2:'#8b5cf6',label:'البوابة العليا',sub:'بوابة صعبة تختبر صبرك وتركيزك.',badge:'خطر مرتفع — تحتاج نصف ساعة على الأقل'};
+  return{key:'tier20',rings:2,color:'#22e6ff',color2:'#8b5cf6',label:'البوابة الوسطى',sub:'بوابة تتطلب تركيزًا كافيًا لإتمامها.',badge:'خطر متوسط — تحتاج ربع ساعة على الأقل'};
+}
+
+/* ---------- سجل يومي ---------- */
+function dayStat(field,inc){
+  const t=today();S.daily[t]=S.daily[t]||{xp:0,quests:0,demons:0};
+  S.daily[t][field]=(S.daily[t][field]||0)+inc;
+}
+
+/* ---------- منح EXP ---------- */
+function gain(stat,xp,label){
+  dayStat('xp',xp);
+  const before=lvl(S.exp[stat]).lvl,rBefore=rankInfo().idx;
+  S.exp[stat]+=xp;
+  const after=lvl(S.exp[stat]).lvl,rAfter=rankInfo().idx;
+  if(rAfter>rBefore){toast('Rank Up!','رتبتك الآن '+RANKS[rAfter].l+' — '+RANKS[rAfter].n)}
+  else if(after>before){toast('Leveled up!',statName(stat)+' → المستوى '+after)}
+  else if(label){toast('+'+xp+' EXP',label)}
+}
+function markActive(){
+  const t=today();
+  if(S.lastActive!==t){
+    if(S.lastActive&&dayDiff(S.lastActive,t)===1)S.streak++;else S.streak=1;
+    S.lastActive=t;
+  }
+}
+function ensureElapsedFresh(q){
+  const t=today();
+  if(q.elapsedDate!==t){q.elapsedDate=t;q.elapsedSeconds=0;q.awarded=false;q.bonusAwarded=false;}
+}
+/* إهمال المهام له تكلفة، وتحذف المهام غير الثابتة المنجزة من أيام سابقة */
+function rollover(){
+  const t=today();
+  if(!S.lastCheck){S.lastCheck=t;save();return}
+  if(S.lastCheck>=t)return;
+  let d=S.lastCheck,n=0,lost=0;
+  while(d<t&&n<3){
+    S.quests.forEach(q=>{
+      if(q.created<=d&&q.done!==d){
+        const p=Math.ceil(q.xp/2),b=S.exp[q.stat];
+        S.exp[q.stat]=Math.max(0,b-p);lost+=b-S.exp[q.stat];
+      }
+    });
+    d=addDays(d,1);n++;
+  }
+  if(S.lastActive&&dayDiff(S.lastActive,t)>1)S.streak=0;
+  S.quests=S.quests.filter(q=>q.fixed||!q.done||q.done>=t);
+  S.lastCheck=t;save();
+  if(lost>0)setTimeout(()=>toast('-'+lost+' EXP','خسرت نقاطًا بسبب مهام فائتة'),400);
+}
+
+/* ---------- أدوات ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let tt;
+function toast(big,small){
+  const t=$('#toast');
+  t.innerHTML='<b>'+esc(big)+'</b><span>'+esc(small||'')+'</span>';
+  t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600);
+}
+function ring(p,text,sub){
+  const c=2*Math.PI*44,off=c*(1-p);
+  return `<svg viewBox="0 0 110 110" role="img" aria-label="${esc(text)}">
+   <circle cx="55" cy="55" r="44" fill="none" stroke="#0a1424" stroke-width="9"/>
+   <circle cx="55" cy="55" r="44" fill="none" stroke="url(#g1)" stroke-width="9" stroke-linecap="round"
+     stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 55 55)"/>
+   <defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#22e6ff"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+   <text x="55" y="58" text-anchor="middle" fill="#fff" font-size="20" font-weight="800" font-family="Tajawal,sans-serif">${esc(text)}</text>
+   <text x="55" y="76" text-anchor="middle" fill="#7d8ea8" font-size="9" font-family="Tajawal,sans-serif">${esc(sub||'')}</text></svg>`;
+}
+function shieldFor(l,idx){
+  const c1=TIER_COLORS[Math.min(idx,5)][0];
+  return `<svg class="shield" viewBox="0 0 60 70" aria-hidden="true">
+   <path d="M30 3 L55 11 V34 C55 51 44 61 30 67 C16 61 5 51 5 34 V11 Z" fill="#06202b" stroke="${c1}" stroke-width="2.5"/>
+   <text x="30" y="43" text-anchor="middle" fill="${c1}" font-size="28" font-weight="800" font-family="Tajawal,sans-serif">${l}</text></svg>`;
+}
+/* شخصية اللاعب: نفس الشكل ثابت دائمًا (جسد + خوذة + عباءة)، وكل ما ارتفعت الرتبة تزيد الفخامة فقط:
+   هالة أقوى، حافة ذهبية على الدرع، أجنحة، تاج — بدون تغيير القوام الأساسي */
+function silhouetteFor(idx){
+  const [c1,c2]=TIER_COLORS[Math.min(idx,5)];
+  const auraOp=(0.05+idx*0.035).toFixed(3),auraR=44+idx*9;
+  const capeOp=(0.5+idx*0.06).toFixed(2);
+  const trim=idx>=3?` stroke="#f5c518" stroke-width="1.4"`:'';
+  const wingOp=idx>=4?(0.35+(idx-4)*0.3).toFixed(2):0;
+  const wings=idx>=4?`<path d="M18 108 Q-6 78 10 44 Q22 70 30 104 Z" fill="${c2}" opacity="${wingOp}"/><path d="M102 108 Q126 78 110 44 Q98 70 90 104 Z" fill="${c2}" opacity="${wingOp}"/>`:'';
+  const crown=idx>=5?`<path d="M40 6 L48 18 L60 4 L72 18 L80 6 L76 24 L44 24 Z" fill="#f5c518" stroke="#b8860b" stroke-width="1.2"/>`:'';
+  const emblem=idx>=5?'#fff5c2':idx>=3?'#f5c518':c1;
+  return `<svg class="sil" viewBox="-20 0 160 260" aria-hidden="true">
+   <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>
+   <circle cx="60" cy="130" r="${auraR}" fill="${c1}" opacity="${auraOp}"/>
+   <path d="M60 58 C40 66 30 100 34 150 L44 246 L48 150 C46 110 50 78 60 58 Z" fill="${c2}" opacity="${capeOp}"/>
+   <path d="M60 58 C80 66 90 100 86 150 L76 246 L72 150 C74 110 70 78 60 58 Z" fill="${c2}" opacity="${capeOp}"/>
+   ${wings}${crown}
+   <circle cx="60" cy="24" r="16" fill="url(#sg)"/>
+   <path d="M60 46 C46 46 36 52 34 66 L30 130 L42 132 L46 90 L48 246 L58 246 L60 160 L62 246 L72 246 L74 90 L78 132 L90 130 L86 66 C84 52 74 46 60 46 Z" fill="url(#sg)"${trim}/>
+   <polygon points="60,84 65,94 60,104 55,94" fill="${emblem}"/>
+  </svg>`;
+}
+function demonIcon(id){
+  const eyes='<circle cx="25" cy="30" r="3" fill="#fff"/><circle cx="39" cy="30" r="3" fill="#fff"/>';
+  const shapes={
+    scatter:'<path d="M32 8 L44 22 L52 40 L44 56 L20 56 L12 40 L20 22 Z"/>',
+    proc:'<path d="M10 56 L14 24 L32 10 L50 24 L54 56 Z"/>',
+    comfort:'<ellipse cx="32" cy="36" rx="24" ry="20"/><circle cx="20" cy="18" r="6"/><circle cx="44" cy="18" r="6"/>',
+    discipline:'<path d="M14 56 V26 Q14 8 32 8 Q50 8 50 26 V56 L42 50 L32 56 L22 50 Z"/>',
+    doubt:'<path d="M8 56 L16 22 L28 30 L36 8 L50 34 L58 56 Z"/>'
+  };
+  return `<svg viewBox="0 0 64 64" aria-hidden="true"><g fill="#0a1424" stroke="#8b5cf6" stroke-width="2" style="filter:drop-shadow(0 0 6px rgba(139,92,246,.7))">${shapes[id]}</g>${eyes}</svg>`;
+}
+const flameSvg=`<svg width="18" height="24" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 2C8 8 4 10 4 17a8 8 0 0016 0c0-4-2-5-3-8c0 3-2 4-3 2c-1-2 0-5-2-9z" fill="url(#fg)"/><defs><linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd76b"/><stop offset="1" stop-color="#ff6a00"/></linearGradient></defs></svg>`;
+
+/* ---------- الشاشات ---------- */
+function viewOnboard(){
+  return `<div class="panel" style="margin-top:40px">
+   <h1 class="title">لعبة الحياة</h1>
+   <p class="sub">الحياة لعبة. أكمل المهام، اكسب EXP، وطوّر هويتك.</p>
+   <label for="pname">اسم اللاعب</label><input id="pname" type="text" maxlength="24" autocomplete="off">
+   <label for="page">العمر</label><input id="page" type="number" min="5" max="99" inputmode="numeric">
+   <button class="btn block" style="margin-top:16px" data-act="start">ابدأ اللعبة</button></div>`;
+}
+
+function viewPlayer(){
+  const ri=rankInfo(),lv=levels();
+  const top=STATS.map(s=>({...s,l:lv[s.id]})).sort((a,b)=>b.l-a.l).slice(0,3);
+  const nextTxt=ri.next?'إلى الرتبة '+ri.next.l:'أعلى رتبة';
+  return `<div class="row between">
+    <div><h1 class="title">نظام اللاعب</h1><p class="sub">الحياة لعبة. أكمل المهام، اكسب EXP، طوّر هويتك.</p>
+    <p class="sub" style="margin-top:4px">${dateLabel(today())}</p></div>
+  </div>
+  <div class="panel">
+   <div class="chips"><span class="chip">اللاعب <b>${esc(S.player.name)}</b></span><span class="chip">العمر <b>${esc(S.player.age)}</b></span><span class="chip">الرتبة <b>${ri.cur.l}</b></span></div>
+   <div class="hero">
+     <div class="ringbox">${ring(ri.p,Math.round(ri.p*100)+'%',nextTxt)}<div class="ringnote">المستوى العام ${Math.floor(ri.avg)}</div></div>
+     <div class="figure">${shieldFor(ri.cur.l,ri.idx)}${silhouetteFor(ri.idx)}<div class="rankname">${ri.cur.n}</div></div>
+     <div class="streak"><div class="small">السلسلة</div><div class="row" style="justify-content:center;gap:4px">${flameSvg}<span class="n">${S.streak}</span></div><div class="small">${S.streak===1?'يوم':'أيام'}</div></div>
+   </div>
+  </div>
+  <div class="panel"><div class="gold">أفضل السمات</div>
+    <div class="chips" style="margin-top:8px">${top.map((t,i)=>`<span class="chip">${i+1}. ${t.n} <b>Lv.${t.l}</b></span>`).join('')}</div></div>
+  <div class="panel"><div class="gold">السمات</div>
+    ${STATS.map(s=>{const x=lvl(S.exp[s.id]);return `<div class="stat">
+      <div class="row between"><span>${s.n}</span><span class="small">Lv.${x.lvl} / ${MAXLV}</span></div>
+      <div class="bar"><i style="width:${(x.into/x.need*100).toFixed(1)}%"></i></div>
+      <div class="small">${x.into} / ${x.need} EXP</div></div>`}).join('')}
+  </div>
+  <div class="panel center"><button class="btn ghost small" data-act="reset">${armed==='reset'?'اضغط مرة ثانية لمسح كل التقدم':'إعادة تعيين اللعبة'}</button></div>`;
+}
+
+function questRow(q){
+  ensureElapsedFresh(q);
+  const t=today();
+  if(q.timer){
+    const th=threshold(q.xp),doneOk=q.done===t&&q.awarded;
+    const mm=Math.floor((q.elapsedSeconds||0)/60);
+    const statusTxt=doneOk?'✔ أنجزت اليوم':(q.elapsedSeconds>0?('توقفت عند '+mm+' د — اضغط لإكمال'):('يتطلب '+Math.round(th/60)+' د على الأقل'));
+    return `<div class="q timer ${doneOk?'done':''}">
+      <button class="check gate" data-act="openGate" data-id="${q.id}" aria-label="بوابة ${esc(q.title)}">⏱</button>
+      <button class="qt" data-act="openGate" data-id="${q.id}">${esc(q.title)}${q.fixed?' 📌':''}<div class="small">${statName(q.stat)} · ${statusTxt}</div></button>
+      <span class="xp">+${q.xp} EXP</span>
+      <button class="edit" data-act="edit" data-id="${q.id}" aria-label="ثبّت المهمة">${q.fixed?'📌':'✎'}</button>
+      <button class="del" data-act="del" data-id="${q.id}" aria-label="حذف ${esc(q.title)}">×</button></div>`;
+  }
+  const d=q.done===t;
+  return `<div class="q ${d?'done':''}">
+    <button class="check" data-act="toggle" data-id="${q.id}" aria-label="${d?'إلغاء الإنجاز':'تم الإنجاز'}: ${esc(q.title)}">✓</button>
+    <div class="qt">${esc(q.title)}${q.fixed?' 📌':''}<div class="small">${statName(q.stat)}</div></div>
+    <span class="xp">+${q.xp} EXP</span>
+    <button class="edit" data-act="edit" data-id="${q.id}" aria-label="ثبّت المهمة">${q.fixed?'📌':'✎'}</button>
+    <button class="del" data-act="del" data-id="${q.id}" aria-label="حذف ${esc(q.title)}">×</button></div>`;
+}
+
+function viewQuests(){
+  const t=today();
+  const done=S.quests.filter(q=>q.done===t).length;
+  const list=S.quests.length?S.quests.map(questRow).join('')
+   :`<div class="empty">ما عندك مهام للحين. أضف أول مهمة، أو جرّب واحدة من هذي:
+      <div class="chips" style="justify-content:center;margin-top:10px">
+       <button class="chip" data-act="quick" data-t="المشي 20 دقيقة" data-s="recovery">المشي 20 دقيقة</button>
+       <button class="chip" data-act="quick" data-t="قراءة 10 صفحات" data-s="create">قراءة 10 صفحات</button>
+       <button class="chip" data-act="quick" data-t="ترتيب الغرفة" data-s="discipline">ترتيب الغرفة</button></div></div>`;
+  return `<h1 class="title">المهام اليومية</h1>
+   <p class="sub">أنجزت اليوم ${done} من ${S.quests.length}. المهمة التي تتركها تكلّفك نصف نقاطها. المهمة الثابتة 📌 تتكرر كل يوم.</p>
+   <div class="panel">${list}</div>
+   <div class="panel"><div class="gold">مهمة جديدة</div>
+     <label for="qt">اسم المهمة</label><input id="qt" type="text" maxlength="60" autocomplete="off">
+     <div class="two"><div><label for="qs">السمة</label><select id="qs">${STATS.map(s=>`<option value="${s.id}">${s.n}</option>`).join('')}</select></div>
+     <div><label for="qx">الصعوبة</label><select id="qx">
+       <option value="10">سهلة (10 EXP، بلا مؤقت)</option>
+       <option value="20" selected>متوسطة (20 EXP)</option>
+       <option value="30">صعبة (30 EXP)</option></select></div></div>
+     <label class="chkrow"><input type="checkbox" id="qfixed"> مهمة ثابتة (تتكرر يوميًا)</label>
+     <label class="chkrow"><input type="checkbox" id="qtimer"> فعّل بوابة بمؤقت لهذي المهمة</label>
+     <button class="btn block" style="margin-top:14px" data-act="add">أضف المهمة</button></div>`;
+}
+
+function threat(s){return s>=60?['مرتفع','b-high']:s>=40?['متوسط','b-mid']:['منخفض','b-low']}
+function baseStrength(id){return Math.min(100,(S.quiz.counts[id]||0)*20)}
+function strength(id){const ds=S.demons[id];return ds.stage>=5?0:Math.round(baseStrength(id)*(1-ds.stage/5))}
+
+function viewDemons(){
+  if(dv.mode==='quiz')return viewQuiz();
+  if(dv.mode==='detail')return viewDetail();
+  if(!S.quiz){
+    return `<h1 class="title">رحلة العالم الداخلي</h1>
+     <div class="panel"><p style="margin:0">اكتشف الشياطين الداخلية التي تعيق نموك. أجب بصدق على 10 أسئلة، وبعدها تظهر لك قائمة أعدائك مرتبة حسب قوتهم.</p>
+     <button class="btn block" style="margin-top:14px" data-act="startQuiz">ابدأ الاختبار</button></div>`;
+  }
+  const order=DIDS.slice().sort((a,b)=>strength(b)-strength(a)||baseStrength(b)-baseStrength(a));
+  return `<h1 class="title">شياطينك الداخلية</h1>
+   <p class="sub">كل شيطان مصنف حسب قوته والتهديد الذي يمثله عليك. اضغط على شيطان لتواجهه.</p>
+   ${order.map(id=>{
+     const ds=S.demons[id],s=strength(id),th=ds.stage>=5?['حليفك','b-ally']:threat(s);
+     return `<button class="demon" data-act="openDemon" data-id="${id}">${demonIcon(id)}
+       <div><div class="row between"><b>${DEMONS[id].n}</b><span class="badge ${th[1]}">${th[0]}</span></div>
+       <div class="small">القوة ${s}% ${ds.stage>0&&ds.stage<5?'· تحدي '+(ds.stage+1)+' من 5':''}</div>
+       <div class="bar"><i style="width:${s}%"></i></div></div></button>`}).join('')}
+   <div class="panel center"><button class="btn ghost small" data-act="retake">${armed==='retake'?'اضغط مرة ثانية (يمسح تقدم التحديات)':'أعد الاختبار'}</button></div>`;
+}
+
+function optionOrder(q){return DIDS.map((_,i)=>DIDS[(i+q*2)%DIDS.length])}
+function viewQuiz(){
+  const q=dv.q,item=QUIZ[q],order=optionOrder(q),L=['A','B','C','D','E','F'];
+  const opts=order.map((id,i)=>`<button class="opt" data-act="answer" data-id="${id}"><span class="l">${L[i]}</span><span>${item[1][id]}</span></button>`).join('')
+    +`<button class="opt" data-act="answer" data-id="none"><span class="l">${L[5]}</span><span>${NEUTRAL_TEXT}</span></button>`;
+  return `<div class="row between"><h1 class="title">رحلة العالم الداخلي</h1><span class="xp">السؤال ${q+1} / ${QUIZ.length}</span></div>
+   <div class="bar gold" style="margin-top:10px"><i style="width:${(q/QUIZ.length*100)}%"></i></div>
+   <div class="panel"><h2 style="font-size:18px;line-height:1.5">${item[0]}</h2>${opts}</div>
+   <div style="margin-top:12px"><button class="btn ghost small" data-act="quizBack">${q===0?'إلغاء':'السؤال السابق'}</button></div>`;
+}
+
+function viewDetail(){
+  const id=dv.id,D=DEMONS[id],ds=S.demons[id],s=strength(id),t=today();
+  const th=ds.stage>=5?['حليفك','b-ally']:threat(s);
+  const ch=D.ch.map((c,i)=>{
+    const st=i<ds.stage?'done':i===ds.stage?'active':'locked';
+    let extra='';
+    if(st==='active'){
+      const dots=Array.from({length:c[2]},(_,k)=>`<i class="${k<ds.progress?'on':''}"></i>`).join('');
+      extra=`<div class="dots" aria-label="التقدم ${ds.progress} من ${c[2]}">${dots}</div>
+       <div class="row between" style="margin-top:8px"><span class="small">${ds.progress} / ${c[2]} أيام</span>
+       <button class="btn small" data-act="log" data-id="${id}" ${ds.lastDay===t?'disabled':''}>${ds.lastDay===t?'سجّلت اليوم':'سجّل إنجاز اليوم'}</button></div>`;
+    }
+    return `<div class="ch ${st}"><div class="row between"><b>${st==='done'?'✓ ':''}${c[0]}</b><span class="xp">+${CH_XP[i]} XP</span></div>
+      <div class="small">${c[1]} (${c[2]} أيام، مرة كل يوم)</div>${extra}</div>`}).join('');
+  return `<div class="row between"><h1 class="title">${D.n}</h1><button class="btn ghost small" data-act="backList">رجوع</button></div>
+   <div class="panel"><div class="row between"><span>القوة ${s}%</span><span class="badge ${th[1]}">${th[0]}</span></div>
+    <div class="bar"><i style="width:${s}%"></i></div>
+    <p style="margin:10px 0 0">${D.d}</p></div>
+   <div class="two">
+    <div class="panel"><div class="gold">ينمو من</div><ul class="tight">${D.grow.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+    <div class="panel"><div class="gold">يضعف عندما</div><ul class="tight">${D.weak.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+   </div>
+   <div class="panel"><div class="gold">التحديات</div>
+    <div class="small" style="margin-bottom:4px">أنجز التحديات بالترتيب. النقاط تروح لسمة ${statName(D.stat)}.</div>${ch}</div>`;
+}
+
+function viewLog(){
+  const dates=Object.keys(S.daily).sort().reverse().slice(0,14);
+  if(!dates.length)return `<h1 class="title">سجل النظام</h1><div class="panel"><div class="empty">ماعندك نشاط مسجل بعد. أنجز مهمة أو تحدي وابدأ سجلك.</div></div>`;
+  const maxXp=Math.max(...dates.map(d=>S.daily[d].xp||0),1);
+  const t=today(),y=addDays(t,-1);
+  const tXp=(S.daily[t]&&S.daily[t].xp)||0,yXp=(S.daily[y]&&S.daily[y].xp)||0,diff=tXp-yXp;
+  const cmp=dates.includes(y)?(diff===0?'نفس إنتاجية أمس':diff>0?`أعلى من أمس بـ ${diff} EXP`:`أقل من أمس بـ ${Math.abs(diff)} EXP`):'لا يوجد بيانات كافية للمقارنة بعد';
+  return `<h1 class="title">سجل النظام</h1><p class="sub">${cmp}</p>
+   <div class="panel">${dates.map(d=>{const rec=S.daily[d],w=Math.round((rec.xp||0)/maxXp*100);
+     return `<div class="stat"><div class="row between"><span>${dateLabel(d)}${d===t?' (اليوم)':''}</span><span class="small">${rec.xp||0} EXP</span></div>
+     <div class="bar"><i style="width:${w}%"></i></div>
+     <div class="small">${rec.quests||0} مهمة منجزة · ${rec.demons||0} تحدي شيطان</div></div>`}).join('')}</div>`;
+}
+
+/* ---------- الرسم العام ---------- */
+function render(){
+  const app=$('#app'),nav=$('#nav');
+  if(!S.player){nav.hidden=true;app.innerHTML=viewOnboard();return}
+  nav.hidden=false;
+  nav.querySelectorAll('button').forEach(b=>b.setAttribute('aria-current',String(b.dataset.tab===tab)));
+  app.innerHTML=tab==='player'?viewPlayer():tab==='quests'?viewQuests():tab==='demons'?viewDemons():viewLog();
+}
+
+/* ---------- بوابة الشيطان ---------- */
+function ringsHtml(tier){
+  const cols=[tier.color,tier.color2,tier.color];
+  let html='';
+  for(let i=0;i<tier.rings;i++)html+=`<div class="portalring r${i+1}" style="color:${cols[i]}"></div>`;
+  return html;
+}
+function renderGate(){
+  const ov=$('#gateOverlay');
+  if(!gate.open){ov.style.display='none';ov.className='';ov.innerHTML='';return}
+  const q=S.quests.find(x=>x.id===gate.id);
+  if(!q){gate.open=false;ov.style.display='none';return}
+  const tier=gateTier(q.xp);
+  ov.className=tier.key;
+  ov.style.display='flex';
+  if(gate.stage==='confirm'){
+    ov.innerHTML=`<div class="portal">
+      <div class="portal-rings">${ringsHtml(tier)}</div>
+      <div class="pcontent">
+       <span class="gatebadge" style="background:${tier.color}22;color:${tier.color};border:1px solid ${tier.color}">${tier.badge}</span>
+       <div class="ptitle" style="color:${tier.color}">${tier.label}</div>
+       <div class="pquest">${esc(q.title)}</div>
+       <p class="pq">${tier.sub}</p>
+       <p class="pq" style="margin:-4px 0 14px">هل أنت مستعد لدخول البوابة؟</p>
+       <button class="btn block" data-act="enterGate">ادخل البوابة</button>
+       <button class="btn ghost block" style="margin-top:10px" data-act="cancelGate">إلغاء</button>
+      </div></div>`;
+  }else if(gate.stage==='running'){
+    const sec=(q.elapsedSeconds||0)+Math.floor((Date.now()-gate.startTs)/1000);
+    const mm=String(Math.floor(sec/60)).padStart(2,'0'),ss=String(sec%60).padStart(2,'0');
+    ov.innerHTML=`<div class="portal running">
+      <div class="pcontent">
+       <span class="gatebadge" style="background:${tier.color}22;color:${tier.color};border:1px solid ${tier.color}">${tier.label}</span>
+       <div class="pquest">${esc(q.title)}</div>
+       <div class="ptimer" style="text-shadow:0 0 20px ${tier.color}">${mm}:${ss}</div>
+       <p class="pq small">أنت الآن داخل البوابة. أنهِ المهمة لتخرج.</p>
+       <button class="btn block" data-act="finishGate">إنهاء المهمة</button>
+      </div></div>`;
+  }else{
+    const ok=gate.success,col=ok?'#3ddc97':'#ff4d6d';
+    ov.innerHTML=`<div class="portal result">
+      <div class="pcontent">
+       <div class="ptitle" style="color:${col}">${ok?'نجحت في المهمة':'فشلت المهمة'}</div>
+       <div class="pquest">${esc(q.title)}</div>
+       <p class="pq">الوقت المستغرق: ${Math.floor((q.elapsedSeconds||0)/60)} دقيقة</p>
+       ${ok?`<p class="pq gold">+${gate.xpGain} EXP${gate.bonus?' (مكافأة ساعة كاملة)':''}</p>`:`<p class="pq">لم تصل للوقت المطلوب. اضغط على المهمة مرة أخرى لإكمال الوقت.</p>`}
+       <button class="btn block" data-act="closeGate">إغلاق</button>
+      </div></div>`;
+  }
+}
+function closeGate(){clearInterval(gate.timerId);gate={open:false,stage:'confirm',id:null,startTs:0,timerId:null,success:false,xpGain:0,bonus:false};renderGate()}
+function finishGate(){
+  const q=S.quests.find(x=>x.id===gate.id);if(!q)return;
+  clearInterval(gate.timerId);
+  const sessionSec=Math.floor((Date.now()-gate.startTs)/1000);
+  q.elapsedSeconds=(q.elapsedSeconds||0)+sessionSec;q.elapsedDate=today();
+  const th=threshold(q.xp),success=th===0?true:q.elapsedSeconds>=th;
+  let xpGain=0,bonus=false;
+  if(success&&!q.awarded){
+    xpGain=q.xp;
+    if(q.elapsedSeconds>=3600&&!q.bonusAwarded){xpGain+=50;bonus=true;q.bonusAwarded=true}
+    q.awarded=true;q.done=today();markActive();gain(q.stat,xpGain,q.title);dayStat('quests',1);
+  }else if(success&&q.awarded&&q.elapsedSeconds>=3600&&!q.bonusAwarded){
+    q.bonusAwarded=true;bonus=true;xpGain=50;gain(q.stat,50,'مكافأة ساعة كاملة');
+  }
+  save();
+  gate.stage='result';gate.success=success;gate.xpGain=xpGain;gate.bonus=bonus;
+  renderGate();
+}
+
+/* ---------- الأحداث ---------- */
+document.addEventListener('change',e=>{
+  if(e.target&&e.target.id==='qx'){
+    const cb=$('#qtimer');
+    if(cb){if(e.target.value==='10'){cb.checked=false;cb.disabled=true}else cb.disabled=false}
+  }
+});
+
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act,id=el.dataset.id;
+  if(a!=='reset'&&a!=='retake')armed=null;
+
+  if(a==='tab'){tab=el.dataset.tab;if(tab==='demons'&&dv.mode==='detail')dv.mode='list';window.scrollTo(0,0)}
+  else if(a==='start'){
+    const n=$('#pname').value.trim(),ag=parseInt($('#page').value,10);
+    if(!n){toast('ناقص الاسم','اكتب اسم اللاعب');return}
+    S.player={name:n,age:isNaN(ag)?'-':ag};S.lastCheck=today();save();
+  }
+  else if(a==='add'||a==='quick'){
+    const title=a==='quick'?el.dataset.t:$('#qt').value.trim();
+    if(!title){toast('ناقص الاسم','اكتب اسم المهمة');return}
+    const stat=a==='quick'?el.dataset.s:$('#qs').value;
+    const xp=a==='quick'?20:parseInt($('#qx').value,10);
+    const fixed=a==='quick'?false:!!($('#qfixed')&&$('#qfixed').checked);
+    const timer=a==='quick'?false:(xp!==10&&!!($('#qtimer')&&$('#qtimer').checked));
+    S.quests.push({id:'q'+Date.now()+Math.floor(Math.random()*999),title,stat,xp,fixed,timer,
+      created:today(),done:null,elapsedSeconds:0,elapsedDate:today(),awarded:false,bonusAwarded:false});
+    save();
+  }
+  else if(a==='toggle'){
+    const q=S.quests.find(x=>x.id===id);if(!q||q.timer)return;const t=today();
+    if(q.done===t){q.done=null;S.exp[q.stat]=Math.max(0,S.exp[q.stat]-q.xp);dayStat('xp',-q.xp);dayStat('quests',-1)}
+    else{q.done=t;markActive();gain(q.stat,q.xp,q.title);dayStat('quests',1)}
+    save();
+  }
+  else if(a==='edit'){
+    const q=S.quests.find(x=>x.id===id);if(!q)return;
+    q.fixed=!q.fixed;save();toast(q.fixed?'ثُبّتت':'أُلغي التثبيت',q.title);
+  }
+  else if(a==='del'){S.quests=S.quests.filter(x=>x.id!==id);save()}
+  else if(a==='openGate'){
+    const q=S.quests.find(x=>x.id===id);if(!q||!q.timer)return;
+    ensureElapsedFresh(q);
+    gate={open:true,stage:'confirm',id,startTs:0,timerId:null,success:false,xpGain:0,bonus:false};
+    renderGate();
+  }
+  else if(a==='enterGate'){
+    gate.stage='running';gate.startTs=Date.now();clearInterval(gate.timerId);
+    gate.timerId=setInterval(renderGate,1000);renderGate();
+  }
+  else if(a==='finishGate'){finishGate()}
+  else if(a==='cancelGate'||a==='closeGate'){closeGate()}
+  else if(a==='startQuiz'){dv={mode:'quiz',id:null,q:0,answers:[]}}
+  else if(a==='answer'){
+    dv.answers.push(id);
+    if(dv.answers.length>=QUIZ.length){
+      const counts={};DIDS.forEach(d=>counts[d]=0);dv.answers.forEach(d=>{if(counts[d]!==undefined)counts[d]++});
+      S.quiz={counts,date:today()};S.demons={};DIDS.forEach(d=>S.demons[d]={stage:0,progress:0,lastDay:null});
+      dv={mode:'list',id:null,q:0,answers:[]};save();toast('تم الكشف','ظهرت شياطينك الداخلية');
+    }else dv.q++;
+  }
+  else if(a==='quizBack'){
+    if(dv.q===0)dv={mode:'list',id:null,q:0,answers:[]};else{dv.answers.pop();dv.q--}
+  }
+  else if(a==='openDemon'){dv={mode:'detail',id,q:0,answers:[]};window.scrollTo(0,0)}
+  else if(a==='backList'){dv.mode='list'}
+  else if(a==='log'){
+    const D=DEMONS[id],ds=S.demons[id],t=today();
+    if(ds.lastDay===t||ds.stage>=5)return;
+    ds.lastDay=t;ds.progress++;markActive();dayStat('demons',1);
+    const c=D.ch[ds.stage];
+    if(ds.progress>=c[2]){
+      const xp=CH_XP[ds.stage];ds.stage++;ds.progress=0;
+      if(ds.stage>=5)toast('انتصار!',D.n+' صار حليفك');
+      gain(D.stat,xp,ds.stage>=5?undefined:'أنهيت التحدي +'+xp+' XP');
+    }
+    save();
+  }
+  else if(a==='retake'){
+    if(armed!=='retake'){armed='retake'}
+    else{armed=null;S.quiz=null;S.demons={};dv={mode:'list',id:null,q:0,answers:[]};save()}
+  }
+  else if(a==='reset'){
+    if(armed!=='reset'){armed='reset'}
+    else{armed=null;S=fresh();try{localStorage.removeItem(KEY)}catch(x){};delete mem[KEY];tab='player';dv={mode:'list',id:null,q:0,answers:[]};closeGate()}
+  }
+  render();
+});
+
+rollover();
+render();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
+}
+</script>
+</body>
+</html>
